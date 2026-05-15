@@ -1,0 +1,6 @@
+
+> hotel-room-booking-system-backed@v0.0.1 dev
+> cross-env APP_NODE_ENV=development node server.js
+
+[2026-05-16 01:56:28.248 AM] [32minfo[39m: [32mApp server running on: http://localhost:3035[39m
+[2026-05-16 01:56:28.289 AM] [32minfo[39m: [32mConnection establish to MongoDB database successful![39m
