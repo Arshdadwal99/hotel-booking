@@ -31,71 +31,23 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh '''npm install'''
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh '''echo "No test command detected"'''
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh '''
-                    docker build \
-                        --pull \
-                        --label org.opencontainers.image.source=$REPOSITORY \
-                        -t $DOCKER_IMAGE:$BUILD_NUMBER \
-                        -t $DOCKER_IMAGE:latest \
-                        .
-                '''
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: env.DOCKER_HUB_CREDENTIALS_ID,
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_TOKEN'
-                )]) {
-                    sh '''
-                        echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push $DOCKER_IMAGE:$BUILD_NUMBER
-                        docker push $DOCKER_IMAGE:latest
-                        docker logout
-                    '''
-                }
-            }
-        }
-
         stage('Deploy to EC2') {
             steps {
-                echo 'EC2 deployment is executed by DevOpsHub through AWS Systems Manager after the image push completes.'
+                sh '''
+                    docker compose down --remove-orphans || true
+                    docker compose build
+                    docker compose up -d
+                '''
             }
         }
 
         stage('Health Check') {
             steps {
                 sh '''
-                    if [ "$DEPLOYMENT_TRANSPORT" = "ssm" ]; then
-                        echo "Health check is executed by DevOpsHub after AWS SSM starts the EC2 container."
-                        exit 0
-                    fi
-                    for attempt in $(seq 1 30); do
-                        if curl -fsS $HEALTH_URL >/dev/null; then
-                            echo "Application is healthy at $HEALTH_URL"
-                            exit 0
-                        fi
-                        echo "Waiting for health check ($attempt/30)..."
-                        sleep 5
-                    done
-                    echo "Health check failed for $HEALTH_URL"
-                    exit 1
+                    docker compose ps
+                    curl -f http://localhost:3035 || exit 1
+                    curl -f http://localhost:3034 || exit 1
+                    curl -f http://localhost:3033 || exit 1
                 '''
             }
         }
