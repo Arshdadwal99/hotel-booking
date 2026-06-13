@@ -16,10 +16,10 @@ pipeline {
         CONTAINER_NAME = 'hotel-booking'
         APP_PORT = '3000'
         PUBLIC_PORT = '80'
-        EC2_HOST = '18.234.246.25'
-        EC2_INSTANCE_ID = 'i-0780fc14cb9e6b7d3'
+        EC2_HOST = '54.158.0.104'
+        EC2_INSTANCE_ID = 'i-0bb79df4b2f7419e7'
         AWS_REGION = 'us-east-1'
-        HEALTH_URL = 'http://18.234.246.25/'
+        HEALTH_URL = 'http://54.158.0.104/'
         DEPLOYMENT_TRANSPORT = 'ssm'
         DOCKER_HUB_CREDENTIALS_ID = 'dockerhub-credentials'
     }
