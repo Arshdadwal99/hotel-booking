@@ -13,6 +13,8 @@ pipeline {
         REPOSITORY = 'Arshdadwal99/hotel-booking'
         BRANCH_NAME = 'master'
         DOCKER_IMAGE = 'arshdadwal99/hotel-booking'
+        DOCKER_IMAGE_BUILD = 'arshdadwal99/hotel-booking:${BUILD_NUMBER}'
+        DOCKER_IMAGE_LATEST = 'arshdadwal99/hotel-booking:latest'
         CONTAINER_NAME = 'hotel-booking'
         APP_PORT = '3000'
         PUBLIC_PORT = '80'
@@ -28,6 +30,25 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t "$DOCKER_IMAGE_BUILD" -t "$DOCKER_IMAGE_LATEST" .'
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS_ID, usernameVariable: 'DOCKERHUB_USR', passwordVariable: 'DOCKERHUB_PSW')]) {
+                    sh '''
+                        echo "$DOCKERHUB_PSW" | docker login -u "$DOCKERHUB_USR" --password-stdin
+                        curl -fsS "https://hub.docker.com/v2/repositories/$DOCKERHUB_USR/hotel-booking/" || curl -fsS -X POST "https://hub.docker.com/v2/repositories/" -u "$DOCKERHUB_USR:$DOCKERHUB_PSW" -H "Content-Type: application/json" -d '{"namespace":"'"$DOCKERHUB_USR"'","name":"hotel-booking","description":"Auto-provisioned by DevOps Hub","is_private":false}'
+                        docker push "$DOCKER_IMAGE_BUILD"
+                        docker push "$DOCKER_IMAGE_LATEST"
+                    '''
+                }
             }
         }
 
