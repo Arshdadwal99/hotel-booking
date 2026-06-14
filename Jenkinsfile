@@ -34,9 +34,9 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 sh '''
-                    docker compose down --remove-orphans || true
-                    docker compose build
-                    docker compose up -d
+                    docker compose -p hotel-booking down --remove-orphans || true
+                    docker compose -p hotel-booking build
+                    docker compose -p hotel-booking up -d
                 '''
             }
         }
