@@ -10,6 +10,7 @@ services:
       retries: 10
 
   seed:
+    image: arshdadwal99/hotel-booking-seed
     build:
       context: ./backend
     command: npm run seed
@@ -23,6 +24,7 @@ services:
     restart: "no"
 
   backend:
+    image: arshdadwal99/hotel-booking-backend
     build:
       context: ./backend
     ports:
@@ -48,6 +50,7 @@ services:
         condition: service_completed_successfully
 
   frontend:
+    image: arshdadwal99/hotel-booking-frontend
     build:
       context: ./frontend
       args:
@@ -62,6 +65,7 @@ services:
       - backend
 
   admin-panel:
+    image: arshdadwal99/hotel-booking-admin
     build:
       context: ./admin-panel
       args:
