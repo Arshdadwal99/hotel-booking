@@ -10,8 +10,8 @@ WORKDIR /app
 RUN apk add --no-cache curl dumb-init
 COPY --from=builder /app .
 ENV NODE_ENV=production
-ENV PORT=3000
-EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -fsS http://localhost:3000/ || exit 1
+ENV PORT=8000
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -fsS http://localhost:8000/ || exit 1
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["sh", "-c", "npm start"]
