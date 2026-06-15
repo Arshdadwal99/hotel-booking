@@ -40,29 +40,6 @@ pipeline {
              }
         }
 
-        stage('Push Docker Image') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS_ID, usernameVariable: 'DOCKERHUB_USR', passwordVariable: 'DOCKERHUB_PSW')]) {
-                    sh """
-                        echo "\$DOCKERHUB_PSW" | docker login -u "\$DOCKERHUB_USR" --password-stdin
-                        curl -fsS "https://hub.docker.com/v2/repositories/\$DOCKERHUB_USR/hotel-booking/" || curl -fsS -X POST "https://hub.docker.com/v2/repositories/" -u "\$DOCKERHUB_USR:\$DOCKERHUB_PSW" -H "Content-Type: application/json" -d '{"namespace":"'"\$DOCKERHUB_USR"'","name":"hotel-booking","description":"Auto-provisioned by DevOps Hub","is_private":false}'
-                        docker push "${env.DOCKER_IMAGE}:${env.BUILD_NUMBER}"
-                        docker push "${env.DOCKER_IMAGE_LATEST}"
-                    """
-                }
-            }
-        }
-
-        stage('Deploy to EC2') {
-            steps {
-                sh '''
-                    docker compose -p hotel-booking down --remove-orphans || true
-                    docker compose -p hotel-booking build
-                    docker compose -p hotel-booking up -d
-                '''
-            }
-        }
-
         stage('Health Check') {
             steps {
                 sh '''
