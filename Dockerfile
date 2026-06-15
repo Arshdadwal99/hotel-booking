@@ -12,6 +12,6 @@ COPY --from=builder /app .
 ENV NODE_ENV=production
 ENV PORT=8000
 EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -fsS http://localhost:8000/ || exit 1
+HEALTHCHECK CMD curl -fsS http://localhost:8000/ || exit 1
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["sh", "-c", "npm start"]
