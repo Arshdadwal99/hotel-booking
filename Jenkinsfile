@@ -15,7 +15,7 @@ pipeline {
         DOCKER_IMAGE = 'arshdadwal99/hotel-booking'
         DOCKER_IMAGE_LATEST = 'arshdadwal99/hotel-booking:latest'
         CONTAINER_NAME = 'hotel-booking'
-        APP_PORT = '8000'
+        APP_PORT = '3000'
         PUBLIC_PORT = '80'
         EC2_HOST = '3.80.23.25'
         EC2_INSTANCE_ID = 'i-0046f090224c7400c'
