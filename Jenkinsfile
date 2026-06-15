@@ -8,27 +8,55 @@ pipeline {
         timestamps()
     }
 
-    stages {
+    environment {
+        PROJECT_TYPE = 'Node.js'
+        REPOSITORY = 'Arshdadwal99/hotel-booking'
+        BRANCH_NAME = 'master'
+        DOCKER_IMAGE = 'arshdadwal99/hotel-booking'
+        DOCKER_IMAGE_LATEST = 'arshdadwal99/hotel-booking:latest'
+        CONTAINER_NAME = 'hotel-booking'
+        APP_PORT = '3000'
+        PUBLIC_PORT = '80'
+        EC2_HOST = '3.80.23.25'
+        EC2_INSTANCE_ID = 'i-0046f090224c7400c'
+        AWS_REGION = 'us-east-1'
+        HEALTH_URL = 'http://3.80.23.25/'
+        DEPLOYMENT_TRANSPORT = 'ssm'
+        DOCKER_HUB_CREDENTIALS_ID = 'dockerhub-credentials'
+    }
 
+    stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build Services') {
+        stage('Build Docker Image') {
             steps {
-                sh '''
-                    docker compose build
-                '''
+                sh """docker build -t "${env.DOCKER_IMAGE}:${env.BUILD_NUMBER}" -t "${env.DOCKER_IMAGE_LATEST}" ."""
             }
         }
 
-        stage('Start Services') {
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS_ID, usernameVariable: 'DOCKERHUB_USR', passwordVariable: 'DOCKERHUB_PSW')]) {
+                    sh """
+                        echo "\$DOCKERHUB_PSW" | docker login -u "\$DOCKERHUB_USR" --password-stdin
+                        curl -fsS "https://hub.docker.com/v2/repositories/\$DOCKERHUB_USR/hotel-booking/" || curl -fsS -X POST "https://hub.docker.com/v2/repositories/" -u "\$DOCKERHUB_USR:\$DOCKERHUB_PSW" -H "Content-Type: application/json" -d '{"namespace":"'"\$DOCKERHUB_USR"'","name":"hotel-booking","description":"Auto-provisioned by DevOps Hub","is_private":false}'
+                        docker push "${env.DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                        docker push "${env.DOCKER_IMAGE_LATEST}"
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to EC2') {
             steps {
                 sh '''
-                    docker compose up -d
-                    sleep 60
+                    docker compose -p hotel-booking down --remove-orphans || true
+                    docker compose -p hotel-booking build
+                    docker compose -p hotel-booking up -d
                 '''
             }
         }
@@ -37,7 +65,6 @@ pipeline {
             steps {
                 sh '''
                     docker compose ps
-
                     curl -f http://localhost:3035 || exit 1
                     curl -f http://localhost:3034 || exit 1
                     curl -f http://localhost:3033 || exit 1
@@ -50,13 +77,11 @@ pipeline {
         always {
             sh 'docker image prune -f || true'
         }
-
         success {
-            echo 'Deployment completed successfully.'
+            echo 'Jenkins Pipeline Generated and deployment completed successfully.'
         }
-
         failure {
-            echo 'Pipeline failed.'
+            echo 'Jenkins pipeline failed. Review console logs for the failed stage.'
         }
     }
 }
