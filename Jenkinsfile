@@ -32,10 +32,12 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Services') {
             steps {
-                sh """docker build -t "${env.DOCKER_IMAGE}:${env.BUILD_NUMBER}" -t "${env.DOCKER_IMAGE_LATEST}" ."""
-            }
+                sh '''
+                    docker compose build
+                '''
+             }
         }
 
         stage('Push Docker Image') {
