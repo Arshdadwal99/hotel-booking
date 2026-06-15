@@ -2,6 +2,6 @@
   "name": "hotel-booking",
   "version": "1.0.0",
   "scripts": {
-    "start": "echo Deployment Successful"
+    "start": "node server.js"
   }
 }
